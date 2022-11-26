@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"strings"
+	"zemoa/downmanager/database"
+	"zemoa/downmanager/service"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
@@ -44,8 +46,11 @@ func findForm(content *goquery.Document) *goquery.Selection {
 }
 
 func main() {
+	db := database.Init(".")
 	router := gin.Default()
-	router.GET("/link", getLink)
+	router.GET("/link1", getLink)
+	router.POST("/links", service.CreateLink(db))
+	router.GET("/links", service.GetAllLink(db))
 
 	router.Run("localhost:8080")
 }

@@ -18,3 +18,16 @@ func GetConfig(db *gorm.DB) func(c *gin.Context) {
 		c.IndentedJSON(http.StatusOK, ConfigDto{DownloadDir: configModle.DownloadDir})
 	}
 }
+
+func UpdateConfig(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		configDto := new(ConfigDto)
+		err := c.Bind(configDto)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+		} else {
+			configModel := config.Update(db, &config.ConfigModel{DownloadDir: &configDto.DownloadDir})
+			c.IndentedJSON(http.StatusOK, ConfigDto{DownloadDir: *configModel.DownloadDir})
+		}
+	}
+}

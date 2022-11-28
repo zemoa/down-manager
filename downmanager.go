@@ -56,6 +56,7 @@ func main() {
 
 	configRoutes := router.Group("/config")
 	configRoutes.GET("", service.GetConfig(db))
+	configRoutes.PATCH("", service.UpdateConfig(db))
 
 	router.Run("localhost:8080")
 }

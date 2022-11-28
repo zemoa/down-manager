@@ -2,17 +2,33 @@ package service
 
 import (
 	"net/http"
+	"time"
 	"zemoa/downmanager/database/link"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
+type LinkDto struct {
+	ID        uint
+	CreatedAt time.Time
+	link      string
+	running   bool
+	inerror   bool
+}
+
 func CreateLink(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		alink := c.Param("link")
-		link := link.Create(*&alink, db)
-		c.IndentedJSON(http.StatusCreated, link)
+		paramLink := c.Param("link")
+		linkEntity := link.Create(*&paramLink, db)
+		linkDto := LinkDto{
+			ID:        linkEntity.ID,
+			link:      linkEntity.Link,
+			running:   linkEntity.Running,
+			inerror:   linkEntity.InError,
+			CreatedAt: linkEntity.CreatedAt,
+		}
+		c.IndentedJSON(http.StatusCreated, linkDto)
 	}
 
 }

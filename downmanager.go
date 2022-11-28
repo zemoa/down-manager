@@ -49,8 +49,13 @@ func main() {
 	db := database.Init(".")
 	router := gin.Default()
 	router.GET("/link1", getLink)
-	router.POST("/links", service.CreateLink(db))
-	router.GET("/links", service.GetAllLink(db))
+
+	linkRoutes := router.Group("/links")
+	linkRoutes.POST("", service.CreateLink(db))
+	linkRoutes.GET("", service.GetAllLink(db))
+
+	configRoutes := router.Group("/config")
+	configRoutes.GET("", service.GetConfig(db))
 
 	router.Run("localhost:8080")
 }

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"zemoa/downmanager/database/config"
 	"zemoa/downmanager/database/link"
 
 	"gorm.io/driver/sqlite"
@@ -14,5 +15,6 @@ func Init(dbPath string) *gorm.DB {
 	}
 
 	db.AutoMigrate(&link.Link{})
+	db.AutoMigrate(&config.Config{})
 	return db
 }

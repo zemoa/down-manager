@@ -53,6 +53,7 @@ func main() {
 	linkRoutes := router.Group("/links")
 	linkRoutes.POST("", service.CreateLink(db))
 	linkRoutes.GET("", service.GetAllLink(db))
+	linkRoutes.DELETE(":linkref", service.DeleteLink(db))
 
 	configRoutes := router.Group("/config")
 	configRoutes.GET("", service.GetConfig(db))

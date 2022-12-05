@@ -49,9 +49,10 @@ func convertLinkToDto(link *link.Link) LinkDto {
 	}
 }
 
-// func DeleteLink(db *gorm.DB) func(c *gin.Context) {
-// 	return func(c *gin.Context) {
-// 		paramLinkId := c.Param("linkid")
-
-// 	}
-// }
+func DeleteLink(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		paramLinkRef := c.Param("linkref")
+		link.DeleteByRef(uuid.MustParse(paramLinkRef), db)
+		c.Writer.WriteHeader(http.StatusNoContent)
+	}
+}

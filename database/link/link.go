@@ -29,3 +29,7 @@ func GetAll(db *gorm.DB) []Link {
 	db.Find(&links)
 	return links
 }
+
+func DeleteByRef(ref uuid.UUID, db *gorm.DB) {
+	db.Where("ref = ?", ref).Delete(&Link{})
+}

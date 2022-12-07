@@ -56,3 +56,15 @@ func DeleteLink(db *gorm.DB) func(c *gin.Context) {
 		c.Writer.WriteHeader(http.StatusNoContent)
 	}
 }
+
+func StartDownloadLink(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		paramLinkRef := c.Param("linkref")
+	}
+}
+
+func StopDownloadLink(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		paramLinkRef := c.Param("linkref")
+	}
+}

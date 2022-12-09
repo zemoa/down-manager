@@ -1,6 +1,7 @@
 package service
 
 import (
+	"log"
 	"net/http"
 	"time"
 	"zemoa/downmanager/database/link"
@@ -21,6 +22,7 @@ type LinkDto struct {
 func CreateLink(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		paramLink := c.Query("link")
+		log.Printf("Will create link with %s", paramLink)
 		linkEntity := link.Create(paramLink, db)
 		linkDto := convertLinkToDto(linkEntity)
 		c.IndentedJSON(http.StatusCreated, linkDto)
@@ -52,6 +54,7 @@ func convertLinkToDto(link *link.Link) LinkDto {
 func DeleteLink(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		paramLinkRef := c.Param("linkref")
+		log.Printf("Will delete link %s", paramLinkRef)
 		link.DeleteByRef(uuid.MustParse(paramLinkRef), db)
 		c.Writer.WriteHeader(http.StatusNoContent)
 	}
@@ -60,11 +63,13 @@ func DeleteLink(db *gorm.DB) func(c *gin.Context) {
 func StartDownloadLink(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		paramLinkRef := c.Param("linkref")
+		log.Printf("Start downloading %s", paramLinkRef)
 	}
 }
 
 func StopDownloadLink(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		paramLinkRef := c.Param("linkref")
+		log.Printf("Stop downloading %s", paramLinkRef)
 	}
 }

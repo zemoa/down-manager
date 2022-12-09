@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -20,7 +19,7 @@ func getLink(c *gin.Context) {
 	}
 	defer resp.Body.Close()
 	body, err := httputil.DumpResponse(resp, true)
-	fmt.Println(string(body))
+	log.Println(string(body))
 	c.String(200, "Hello Man!")
 }
 

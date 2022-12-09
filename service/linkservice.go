@@ -71,5 +71,11 @@ func StopDownloadLink(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		paramLinkRef := c.Param("linkref")
 		log.Printf("Stop downloading %s", paramLinkRef)
+		link := link.GetByRef(uuid.MustParse(paramLinkRef), db)
+		if link == nil {
+			c.Writer.WriteHeader(http.StatusNotFound)
+		} else {
+			c.Writer.WriteHeader(http.StatusAccepted)
+		}
 	}
 }

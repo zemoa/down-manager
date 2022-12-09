@@ -33,3 +33,12 @@ func GetAll(db *gorm.DB) []Link {
 func DeleteByRef(ref uuid.UUID, db *gorm.DB) {
 	db.Where("ref = ?", ref).Delete(&Link{})
 }
+
+func GetByRef(ref uuid.UUID, db *gorm.DB) *Link {
+	var link Link
+	result := db.Limit(1).Where("ref = ?", ref).Find(&link)
+	if result.RowsAffected != 1 {
+		return nil
+	}
+	return &link
+}

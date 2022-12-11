@@ -24,6 +24,10 @@ func Create(link string, db *gorm.DB) *Link {
 	return nil
 }
 
+func Update(link *Link, db *gorm.DB) {
+	db.Save(link)
+}
+
 func GetAll(db *gorm.DB) []Link {
 	var links []Link
 	db.Find(&links)

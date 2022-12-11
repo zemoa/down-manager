@@ -41,16 +41,6 @@ func GetAllLink(db *gorm.DB) func(c *gin.Context) {
 	}
 }
 
-func convertLinkToDto(link *link.Link) LinkDto {
-	return LinkDto{
-		Ref:       link.Ref,
-		Link:      link.Link,
-		Running:   link.Running,
-		Inerror:   link.InError,
-		CreatedAt: link.CreatedAt,
-	}
-}
-
 func DeleteLink(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		paramLinkRef := c.Param("linkref")
@@ -64,6 +54,18 @@ func StartDownloadLink(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		paramLinkRef := c.Param("linkref")
 		log.Printf("Start downloading %s", paramLinkRef)
+		startOrStopDownload(paramLinkRef, true, db, c)
+	}
+}
+
+func startOrStopDownload(paramLinkRef string, start bool, db *gorm.DB, c *gin.Context) {
+	linkObj := link.GetByRef(uuid.MustParse(paramLinkRef), db)
+	if linkObj == nil {
+		c.Writer.WriteHeader(http.StatusNotFound)
+	} else {
+		linkObj.Running = start
+		link.Update(linkObj, db)
+		c.IndentedJSON(http.StatusOK, convertLinkToDto(linkObj))
 	}
 }
 
@@ -71,11 +73,16 @@ func StopDownloadLink(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		paramLinkRef := c.Param("linkref")
 		log.Printf("Stop downloading %s", paramLinkRef)
-		link := link.GetByRef(uuid.MustParse(paramLinkRef), db)
-		if link == nil {
-			c.Writer.WriteHeader(http.StatusNotFound)
-		} else {
-			c.Writer.WriteHeader(http.StatusAccepted)
-		}
+		startOrStopDownload(paramLinkRef, false, db, c)
+	}
+}
+
+func convertLinkToDto(link *link.Link) LinkDto {
+	return LinkDto{
+		Ref:       link.Ref,
+		Link:      link.Link,
+		Running:   link.Running,
+		Inerror:   link.InError,
+		CreatedAt: link.CreatedAt,
 	}
 }

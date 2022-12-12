@@ -9,6 +9,7 @@ import (
 	"zemoa/downmanager/service"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -47,6 +48,8 @@ func findForm(content *goquery.Document) *goquery.Selection {
 func main() {
 	db := database.Init(".")
 	router := gin.Default()
+	router.Use(cors.Default())
+
 	router.GET("/link1", getLink)
 
 	linkRoutes := router.Group("/links")

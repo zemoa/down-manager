@@ -10,6 +10,13 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}"
+        },
+        {
+            "name": "Start Front",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:4200",
+            "webRoot": "${workspaceFolder}/downmanager-front"
         }
     ]
 }

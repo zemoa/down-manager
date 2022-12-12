@@ -1,5 +1,6 @@
 import { derived, writable, type Writable } from "svelte/store";
 import type { Link } from "../model/link-model";
+import { env } from "$env/dynamic/public";
 
 class LinkStore {
     constructor(
@@ -18,7 +19,7 @@ class LinkStore {
     public async retrieveLinks() {
         this._fetchingLinks.set(true)
         try {
-            const response = await fetch("http://localhost:8080/links", {
+            const response = await fetch(`${env.PUBLIC_BASE_API}/links`, {
                 method: 'GET'
             })
             const data = await response.json() as Link[]

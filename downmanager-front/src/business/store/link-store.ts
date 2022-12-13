@@ -31,6 +31,18 @@ class LinkStore {
             this._fetchingLinks.set(false)
         }
     }
+
+    public async addLink(link: string) {
+        const response = await fetch(`${env.PUBLIC_BASE_API}/links?link=${link}`, {
+            method: 'POST'
+        })
+        if(response.ok) {
+            const data = await response.json() as Link
+            this._links.update(links => [...links, data])
+        } else {
+            console.log(`Error while creating link. Code : ${response.status} with message : ${response.statusText}`)
+        }
+    }
 }
 
 export const linkStore = new LinkStore()

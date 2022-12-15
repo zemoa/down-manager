@@ -4,6 +4,7 @@
     import Button, {Label} from "@smui/button";
 	import AddDialog from "../components/AddDialog.svelte";
     import DeleteDialog from "../components/DeleteDialog.svelte";
+	import LinkItem from "../components/LinkItem.svelte";
     
     const {fetchingLinks, links} = linkStore
     let openAddDialog = false;
@@ -14,12 +15,7 @@
     onMount(async () => {
         linkStore.retrieveLinks();
     })
-    function onRemoveCalled(linkref: string) {
-        removeDialogData = {
-            open: true,
-            linkRef: linkref
-        }
-    }
+    
 </script>
 <main>
     <p>Fetching : {$fetchingLinks}</p>
@@ -31,7 +27,7 @@
     
     <ul>
     {#each $links as link}
-        <li>{link.Ref} - <Button on:click={() => (onRemoveCalled(link.Ref))}>Remove</Button></li>
+        <li><LinkItem bind:link bind:removeDialogData></LinkItem></li>
     {/each}
     </ul>
 </main>

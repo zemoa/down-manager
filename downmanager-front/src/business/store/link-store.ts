@@ -51,7 +51,35 @@ class LinkStore {
         if(response.ok) {
             this._links.update(links => links.filter(link => link.Ref != linkref))
         } else {
-            console.log(`Error while creating link. Code : ${response.status} with message : ${response.statusText}`)
+            console.log(`Error while deleting link. Code : ${response.status} with message : ${response.statusText}`)
+        }
+    }
+
+    public async startDownload(linkref: string) {
+        this.changeDownloadState(linkref, true)
+    }
+
+    public async stopDownload(linkref: string) {
+        this.changeDownloadState(linkref, false)
+    }
+
+    async changeDownloadState(linkref: string, start: boolean) {
+        const action = (start? "start": "stop")
+        const response = await fetch(`${env.PUBLIC_BASE_API}/links/${linkref}/${action}`, {
+            method: 'PUT'
+        })
+        if(response.ok) {
+            const data = await response.json() as Link
+            this._links.update(links => {
+                const link = links.find(link => linkref == link.Ref)
+                if(link) {
+                    link.Running = data.Running
+                    return [...links]
+                }
+                return links
+            })
+        } else {
+            console.log(`Error while calling action ${action} on link ${linkref}. Code : ${response.status} with message : ${response.statusText}`)
         }
     }
 }

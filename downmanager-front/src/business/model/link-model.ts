@@ -1,3 +1,5 @@
 export interface Link {
-    Ref: string
+    Ref: string,
+    Running: boolean,
+    Link: string
 }

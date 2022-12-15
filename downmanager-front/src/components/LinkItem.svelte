@@ -1,6 +1,7 @@
 <script lang="ts">
-	import Button from "@smui/button";
-	import type { Link } from "src/business/model/link-model";
+	import Button, {Icon} from "@smui/button";
+	import type { Link } from "../business/model/link-model";
+	import { linkStore } from "../business/store/link-store";
 
     export let link:Link
     export let removeDialogData : {
@@ -14,4 +15,11 @@
         }
     }
 </script>
-{link.Ref} - <Button on:click={() => (onRemoveCalled(link.Ref))}>Remove</Button>
+{link.Ref} - state : {link.Running ? "running": "stopped"} - 
+<Button on:click={() => (linkStore.startDownload(link.Ref))}>
+    <Icon class="material-icons">play_arrow</Icon>
+</Button>
+<Button on:click={() => (linkStore.stopDownload(link.Ref))}>
+    <Icon class="material-icons">pause</Icon>
+</Button> 
+<Button on:click={() => (onRemoveCalled(link.Ref))}>Remove</Button>

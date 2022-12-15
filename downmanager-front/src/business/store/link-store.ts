@@ -43,6 +43,17 @@ class LinkStore {
             console.log(`Error while creating link. Code : ${response.status} with message : ${response.statusText}`)
         }
     }
+
+    public async removeLink(linkref: string) {
+        const response = await fetch(`${env.PUBLIC_BASE_API}/links/${linkref}`, {
+            method: 'DELETE'
+        })
+        if(response.ok) {
+            this._links.update(links => links.filter(link => link.Ref != linkref))
+        } else {
+            console.log(`Error while creating link. Code : ${response.status} with message : ${response.statusText}`)
+        }
+    }
 }
 
 export const linkStore = new LinkStore()

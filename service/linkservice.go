@@ -37,6 +37,9 @@ func GetAllLink(db *gorm.DB) func(c *gin.Context) {
 		for _, link := range allLinks {
 			allLinksDto = append(allLinksDto, convertLinkToDto(&link))
 		}
+		if allLinksDto == nil {
+			allLinksDto = []LinkDto{}
+		}
 		c.IndentedJSON(http.StatusOK, allLinksDto)
 	}
 }

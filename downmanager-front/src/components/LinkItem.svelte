@@ -15,7 +15,7 @@
         }
     }
 </script>
-{link.Ref} - state : {link.Running ? "running": "stopped"} - 
+{link.Ref} ({link.Link}) - state : {link.Running ? "running": "stopped"} - 
 <Button on:click={() => (linkStore.startDownload(link.Ref))}>
     <Icon class="material-icons">play_arrow</Icon>
 </Button>

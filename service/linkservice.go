@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"zemoa/downmanager/database/config"
 	"zemoa/downmanager/database/link"
 
 	"github.com/gin-gonic/gin"
@@ -73,6 +74,8 @@ func StartDownloadLink(db *gorm.DB) func(c *gin.Context) {
 		paramLinkRef := c.Param("linkref")
 		log.Printf("Start downloading %s", paramLinkRef)
 		linkObj := link.GetByRef(uuid.MustParse(paramLinkRef), db)
+		config := config.Get(db)
+		DownloadFile(linkObj.Link, linkObj.Filename, config.DownloadDir)
 		startOrStopDownload(linkObj, true, db, c)
 	}
 }

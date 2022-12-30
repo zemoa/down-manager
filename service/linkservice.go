@@ -23,12 +23,17 @@ type LinkDto struct {
 	Filename  string
 }
 
-func CreateLink(db *gorm.DB) func(c *gin.Context) {
+type LinkService struct {
+	Db              *gorm.DB
+	DownloadService *DownloadService
+}
+
+func (ls *LinkService) CreateLink() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		paramLink := c.Query("link")
 		log.Printf("Will create link with %s", paramLink)
-		linkEntity := link.Create(paramLink, db)
-		filename, rangeSupported, length, error := GetLinkDetails(linkEntity.Link)
+		linkEntity := link.Create(paramLink, ls.Db)
+		filename, rangeSupported, length, error := ls.DownloadService.GetLinkDetails(linkEntity.Link)
 		log.Printf("filename <%s>, range supported <%t>, length <%d>", filename, rangeSupported, length)
 		if error != nil {
 			linkEntity.InError = true
@@ -39,16 +44,16 @@ func CreateLink(db *gorm.DB) func(c *gin.Context) {
 			linkEntity.Rangesupported = rangeSupported
 			linkEntity.Length = uint32(length)
 		}
-		link.Update(linkEntity, db)
+		link.Update(linkEntity, ls.Db)
 		linkDto := convertLinkToDto(linkEntity)
 		c.IndentedJSON(http.StatusCreated, linkDto)
 	}
 
 }
 
-func GetAllLink(db *gorm.DB) func(c *gin.Context) {
+func (ls *LinkService) GetAllLink() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		allLinks := link.GetAll(db)
+		allLinks := link.GetAll(ls.Db)
 		var allLinksDto []LinkDto
 		for _, link := range allLinks {
 			allLinksDto = append(allLinksDto, convertLinkToDto(&link))
@@ -60,32 +65,32 @@ func GetAllLink(db *gorm.DB) func(c *gin.Context) {
 	}
 }
 
-func DeleteLink(db *gorm.DB) func(c *gin.Context) {
+func (ls *LinkService) DeleteLink() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		paramLinkRef := c.Param("linkref")
 		log.Printf("Will delete link %s", paramLinkRef)
-		link.DeleteByRef(uuid.MustParse(paramLinkRef), db)
+		link.DeleteByRef(uuid.MustParse(paramLinkRef), ls.Db)
 		c.Writer.WriteHeader(http.StatusNoContent)
 	}
 }
 
-func StartDownloadLink(db *gorm.DB) func(c *gin.Context) {
+func (ls *LinkService) StartDownloadLink() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		paramLinkRef := c.Param("linkref")
 		log.Printf("Start downloading %s", paramLinkRef)
-		linkObj := link.GetByRef(uuid.MustParse(paramLinkRef), db)
-		config := config.Get(db)
-		DownloadFile(linkObj.Link, linkObj.Filename, config.DownloadDir)
-		startOrStopDownload(linkObj, true, db, c)
+		linkObj := link.GetByRef(uuid.MustParse(paramLinkRef), ls.Db)
+		config := config.Get(ls.Db)
+		ls.DownloadService.DownloadFile(linkObj.Link, linkObj.Filename, config.DownloadDir)
+		startOrStopDownload(linkObj, true, ls.Db, c)
 	}
 }
 
-func StopDownloadLink(db *gorm.DB) func(c *gin.Context) {
+func (ls *LinkService) StopDownloadLink() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		paramLinkRef := c.Param("linkref")
 		log.Printf("Stop downloading %s", paramLinkRef)
-		linkObj := link.GetByRef(uuid.MustParse(paramLinkRef), db)
-		startOrStopDownload(linkObj, false, db, c)
+		linkObj := link.GetByRef(uuid.MustParse(paramLinkRef), ls.Db)
+		startOrStopDownload(linkObj, false, ls.Db, c)
 	}
 }
 

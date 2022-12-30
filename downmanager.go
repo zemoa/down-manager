@@ -47,17 +47,21 @@ func findForm(content *goquery.Document) *goquery.Selection {
 
 func main() {
 	db := database.Init(".")
+
+	linkService := &service.LinkService{
+		Db: db,
+	}
 	router := gin.Default()
 	router.Use(cors.Default())
 
 	router.GET("/link1", getLink)
 
 	linkRoutes := router.Group("/links")
-	linkRoutes.POST("", service.CreateLink(db))
-	linkRoutes.GET("", service.GetAllLink(db))
-	linkRoutes.DELETE(":linkref", service.DeleteLink(db))
-	linkRoutes.PUT(":linkref/start", service.StartDownloadLink(db))
-	linkRoutes.PUT(":linkref/stop", service.StopDownloadLink(db))
+	linkRoutes.POST("", linkService.CreateLink())
+	linkRoutes.GET("", linkService.GetAllLink())
+	linkRoutes.DELETE(":linkref", linkService.DeleteLink())
+	linkRoutes.PUT(":linkref/start", linkService.StartDownloadLink())
+	linkRoutes.PUT(":linkref/stop", linkService.StopDownloadLink())
 
 	configRoutes := router.Group("/config")
 	configRoutes.GET("", service.GetConfig(db))

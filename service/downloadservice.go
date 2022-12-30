@@ -9,7 +9,9 @@ import (
 	"strings"
 )
 
-func GetLinkDetails(url string) (filename string, rangeSupported bool, length int, error error) {
+type DownloadService struct{}
+
+func (ds *DownloadService) GetLinkDetails(url string) (filename string, rangeSupported bool, length int, error error) {
 	response, err := http.Head(url)
 	if err != nil || (response.StatusCode != 200 && response.StatusCode != 206) {
 		return url, false, 0, fmt.Errorf("error while creating request : %v", err)
@@ -30,7 +32,7 @@ func GetLinkDetails(url string) (filename string, rangeSupported bool, length in
 	return filename_, false, cl, nil
 }
 
-func DownloadFile(url string, filename string, path string) error {
+func (ds *DownloadService) DownloadFile(url string, filename string, path string) error {
 	filePath := path + "/" + filename
 	out, err := os.Create(filePath + ".tmp")
 	if err != nil {

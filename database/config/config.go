@@ -12,18 +12,22 @@ type ConfigModel struct {
 	DownloadDir *string
 }
 
-func Update(db *gorm.DB, config *ConfigModel) ConfigModel {
+type ConfigRepo struct {
+	Db *gorm.DB
+}
+
+func (cr *ConfigRepo) Update(config *ConfigModel) ConfigModel {
 	var currentConfig Config
-	db.FirstOrCreate(&currentConfig)
+	cr.Db.FirstOrCreate(&currentConfig)
 	if config.DownloadDir != nil {
 		currentConfig.DownloadDir = *config.DownloadDir
 	}
-	db.Save(currentConfig)
+	cr.Db.Save(currentConfig)
 	return ConfigModel{ID: config.ID, DownloadDir: &currentConfig.DownloadDir}
 }
 
-func Get(db *gorm.DB) *Config {
+func (cr *ConfigRepo) Get() *Config {
 	var config Config
-	db.First(&config)
+	cr.Db.First(&config)
 	return &config
 }

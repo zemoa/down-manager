@@ -6,7 +6,6 @@ import (
 	"zemoa/downmanager/database/config"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type ConfigDto struct {
@@ -14,12 +13,12 @@ type ConfigDto struct {
 }
 
 type ConfigService struct {
-	Db *gorm.DB
+	ConfigRepo *config.ConfigRepo
 }
 
 func (cs *ConfigService) GetConfig() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		configModle := config.Get(cs.Db)
+		configModle := cs.ConfigRepo.Get()
 		c.IndentedJSON(http.StatusOK, ConfigDto{DownloadDir: configModle.DownloadDir})
 	}
 }
@@ -32,7 +31,7 @@ func (cs *ConfigService) UpdateConfig() func(c *gin.Context) {
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 		} else {
-			configModel := config.Update(cs.Db, &config.ConfigModel{DownloadDir: &configDto.DownloadDir})
+			configModel := cs.ConfigRepo.Update(&config.ConfigModel{DownloadDir: &configDto.DownloadDir})
 			c.IndentedJSON(http.StatusOK, ConfigDto{DownloadDir: *configModel.DownloadDir})
 		}
 	}

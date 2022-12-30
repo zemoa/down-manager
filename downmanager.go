@@ -6,6 +6,8 @@ import (
 	"net/http/httputil"
 	"strings"
 	"zemoa/downmanager/database"
+	"zemoa/downmanager/database/config"
+	"zemoa/downmanager/database/link"
 	"zemoa/downmanager/service"
 
 	"github.com/PuerkitoBio/goquery"
@@ -47,12 +49,14 @@ func findForm(content *goquery.Document) *goquery.Selection {
 
 func main() {
 	db := database.Init(".")
-
+	linkRepo := &link.LinkRepo{Db: db}
+	configRepo := &config.ConfigRepo{Db: db}
 	linkService := &service.LinkService{
-		Db: db,
+		LinkRepo:   linkRepo,
+		ConfigRepo: configRepo,
 	}
 	configService := &service.ConfigService{
-		Db: db,
+		ConfigRepo: configRepo,
 	}
 	router := gin.Default()
 	router.Use(cors.Default())

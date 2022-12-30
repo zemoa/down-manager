@@ -17,33 +17,37 @@ type Link struct {
 	ErrorMsg       *string `gorm:"size=1024"`
 }
 
-func Create(link string, db *gorm.DB) *Link {
+type LinkRepo struct {
+	Db *gorm.DB
+}
+
+func (lr *LinkRepo) Create(link string) *Link {
 	uuid, err := uuid.NewUUID()
 	if err == nil {
 		linkEntity := Link{Link: link, Running: false, InError: false, Ref: uuid}
-		db.Create(&linkEntity)
+		lr.Db.Create(&linkEntity)
 		return &linkEntity
 	}
 	return nil
 }
 
-func Update(link *Link, db *gorm.DB) {
-	db.Save(link)
+func (lr *LinkRepo) Update(link *Link) {
+	lr.Db.Save(link)
 }
 
-func GetAll(db *gorm.DB) []Link {
+func (lr *LinkRepo) GetAll() []Link {
 	var links []Link
-	db.Find(&links)
+	lr.Db.Find(&links)
 	return links
 }
 
-func DeleteByRef(ref uuid.UUID, db *gorm.DB) {
-	db.Where("ref = ?", ref).Delete(&Link{})
+func (lr *LinkRepo) DeleteByRef(ref uuid.UUID) {
+	lr.Db.Where("ref = ?", ref).Delete(&Link{})
 }
 
-func GetByRef(ref uuid.UUID, db *gorm.DB) *Link {
+func (lr *LinkRepo) GetByRef(ref uuid.UUID) *Link {
 	var link Link
-	result := db.Limit(1).Where("ref = ?", ref).Find(&link)
+	result := lr.Db.Limit(1).Where("ref = ?", ref).Find(&link)
 	if result.RowsAffected != 1 {
 		return nil
 	}

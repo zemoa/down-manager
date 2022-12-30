@@ -16,7 +16,10 @@ type LinkDto struct {
 	CreatedAt time.Time
 	Link      string
 	Running   bool
-	Inerror   bool
+	InError   bool
+	ErrorMsg  *string
+	Length    uint32
+	Filename  string
 }
 
 func CreateLink(db *gorm.DB) func(c *gin.Context) {
@@ -24,6 +27,18 @@ func CreateLink(db *gorm.DB) func(c *gin.Context) {
 		paramLink := c.Query("link")
 		log.Printf("Will create link with %s", paramLink)
 		linkEntity := link.Create(paramLink, db)
+		filename, rangeSupported, length, error := GetLinkDetails(linkEntity.Link)
+		log.Printf("filename <%s>, range supported <%t>, length <%d>", filename, rangeSupported, length)
+		if error != nil {
+			linkEntity.InError = true
+			errMsg := "The file is unavailable"
+			linkEntity.ErrorMsg = &errMsg
+		} else {
+			linkEntity.Filename = filename
+			linkEntity.Rangesupported = rangeSupported
+			linkEntity.Length = uint32(length)
+		}
+		link.Update(linkEntity, db)
 		linkDto := convertLinkToDto(linkEntity)
 		c.IndentedJSON(http.StatusCreated, linkDto)
 	}
@@ -57,12 +72,21 @@ func StartDownloadLink(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		paramLinkRef := c.Param("linkref")
 		log.Printf("Start downloading %s", paramLinkRef)
-		startOrStopDownload(paramLinkRef, true, db, c)
+		linkObj := link.GetByRef(uuid.MustParse(paramLinkRef), db)
+		startOrStopDownload(linkObj, true, db, c)
 	}
 }
 
-func startOrStopDownload(paramLinkRef string, start bool, db *gorm.DB, c *gin.Context) {
-	linkObj := link.GetByRef(uuid.MustParse(paramLinkRef), db)
+func StopDownloadLink(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		paramLinkRef := c.Param("linkref")
+		log.Printf("Stop downloading %s", paramLinkRef)
+		linkObj := link.GetByRef(uuid.MustParse(paramLinkRef), db)
+		startOrStopDownload(linkObj, false, db, c)
+	}
+}
+
+func startOrStopDownload(linkObj *link.Link, start bool, db *gorm.DB, c *gin.Context) {
 	if linkObj == nil {
 		c.Writer.WriteHeader(http.StatusNotFound)
 	} else {
@@ -71,21 +95,15 @@ func startOrStopDownload(paramLinkRef string, start bool, db *gorm.DB, c *gin.Co
 		c.IndentedJSON(http.StatusOK, convertLinkToDto(linkObj))
 	}
 }
-
-func StopDownloadLink(db *gorm.DB) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		paramLinkRef := c.Param("linkref")
-		log.Printf("Stop downloading %s", paramLinkRef)
-		startOrStopDownload(paramLinkRef, false, db, c)
-	}
-}
-
 func convertLinkToDto(link *link.Link) LinkDto {
 	return LinkDto{
 		Ref:       link.Ref,
 		Link:      link.Link,
 		Running:   link.Running,
-		Inerror:   link.InError,
+		InError:   link.InError,
 		CreatedAt: link.CreatedAt,
+		ErrorMsg:  link.ErrorMsg,
+		Length:    link.Length,
+		Filename:  link.Filename,
 	}
 }

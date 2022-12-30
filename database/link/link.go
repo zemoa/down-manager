@@ -7,11 +7,14 @@ import (
 
 type Link struct {
 	gorm.Model
-	Ref      uuid.UUID `gorm:"type:uuid;index"`
-	Link     string    `gorm:"unique;size=1024"`
-	Running  bool
-	InError  bool
-	ErrorMsg *string `gorm:"size=1024"`
+	Ref            uuid.UUID `gorm:"type:uuid;index"`
+	Link           string    `gorm:"unique;size=1024"`
+	Filename       string    `gorm:"unique;size=128"`
+	Rangesupported bool
+	Length         uint32
+	Running        bool
+	InError        bool
+	ErrorMsg       *string `gorm:"size=1024"`
 }
 
 func Create(link string, db *gorm.DB) *Link {

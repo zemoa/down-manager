@@ -51,6 +51,9 @@ func main() {
 	linkService := &service.LinkService{
 		Db: db,
 	}
+	configService := &service.ConfigService{
+		Db: db,
+	}
 	router := gin.Default()
 	router.Use(cors.Default())
 
@@ -64,8 +67,8 @@ func main() {
 	linkRoutes.PUT(":linkref/stop", linkService.StopDownloadLink())
 
 	configRoutes := router.Group("/config")
-	configRoutes.GET("", service.GetConfig(db))
-	configRoutes.PATCH("", service.UpdateConfig(db))
+	configRoutes.GET("", configService.GetConfig())
+	configRoutes.PATCH("", configService.UpdateConfig())
 
 	router.Run("localhost:8080")
 }

@@ -9,7 +9,7 @@ type Link struct {
 	gorm.Model
 	Ref            uuid.UUID `gorm:"type:uuid;index"`
 	Link           string    `gorm:"unique;size=1024"`
-	Filename       string    `gorm:"unique;size=128"`
+	Filename       string    `gorm:"size=128"`
 	Rangesupported bool
 	Length         uint32
 	Running        bool

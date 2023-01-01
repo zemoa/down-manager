@@ -11,7 +11,8 @@ type Link struct {
 	Link           string    `gorm:"unique;size=1024"`
 	Filename       string    `gorm:"size=128"`
 	Rangesupported bool
-	Length         uint32
+	Size           uint64
+	Downloaded     uint64
 	Running        bool
 	InError        bool
 	ErrorMsg       *string `gorm:"size=1024"`
@@ -52,4 +53,8 @@ func (lr *LinkRepo) GetByRef(ref uuid.UUID) *Link {
 		return nil
 	}
 	return &link
+}
+
+func (lr *LinkRepo) UpdateDownloaded(ref uuid.UUID, downloaded uint64) {
+	lr.Db.Model(&Link{}).Where("ref = ?", ref).Update("downloaded", downloaded)
 }

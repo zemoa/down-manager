@@ -9,6 +9,10 @@ import (
 	"strings"
 )
 
+type DownloadListener interface {
+	progress(passedByte uint64)
+}
+
 type DownloadService struct{}
 
 func (ds *DownloadService) GetLinkDetails(url string) (filename string, rangeSupported bool, length int, error error) {
@@ -32,7 +36,7 @@ func (ds *DownloadService) GetLinkDetails(url string) (filename string, rangeSup
 	return filename_, false, cl, nil
 }
 
-func (ds *DownloadService) DownloadFile(url string, filename string, path string) error {
+func (ds *DownloadService) DownloadFile(url string, filename string, path string, downloadListener DownloadListener) error {
 	filePath := path + "/" + filename
 	out, err := os.Create(filePath + ".tmp")
 	if err != nil {
@@ -45,7 +49,9 @@ func (ds *DownloadService) DownloadFile(url string, filename string, path string
 		return err
 	}
 	defer resp.Body.Close()
-	counter := &WriteCounter{}
+	counter := &writeCounter{
+		DownloadListener: downloadListener,
+	}
 	if _, err = io.Copy(out, io.TeeReader(resp.Body, counter)); err != nil {
 		out.Close()
 		return err
@@ -66,23 +72,14 @@ func getFileName(url string, headers *http.Header) string {
 	return filename
 }
 
-type WriteCounter struct {
-	Total uint64
+type writeCounter struct {
+	total            uint64
+	DownloadListener DownloadListener
 }
 
-func (wc *WriteCounter) Write(p []byte) (int, error) {
+func (wc *writeCounter) Write(p []byte) (int, error) {
 	n := len(p)
-	wc.Total += uint64(n)
-	wc.PrintProgress()
+	wc.total += uint64(n)
+	wc.DownloadListener.progress(wc.total)
 	return n, nil
-}
-
-func (wc WriteCounter) PrintProgress() {
-	// Clear the line by using a character return to go back to the start and remove
-	// the remaining characters by filling it with spaces
-	fmt.Printf("\r%s", strings.Repeat(" ", 35))
-
-	// Return again and print current status of download
-	// We use the humanize package to print the bytes in a meaningful way (e.g. 10 MB)
-	fmt.Printf("\rDownloading... %d complete", wc.Total)
 }

@@ -12,14 +12,15 @@ import (
 )
 
 type LinkDto struct {
-	Ref       uuid.UUID
-	CreatedAt time.Time
-	Link      string
-	Running   bool
-	InError   bool
-	ErrorMsg  *string
-	Length    uint32
-	Filename  string
+	Ref        uuid.UUID
+	CreatedAt  time.Time
+	Link       string
+	Running    bool
+	InError    bool
+	ErrorMsg   *string
+	Size       uint64
+	Downloaded uint64
+	Filename   string
 }
 
 type LinkService struct {
@@ -42,7 +43,7 @@ func (ls *LinkService) CreateLink() func(c *gin.Context) {
 		} else {
 			linkEntity.Filename = filename
 			linkEntity.Rangesupported = rangeSupported
-			linkEntity.Length = uint32(length)
+			linkEntity.Size = uint64(length)
 		}
 		ls.LinkRepo.Update(linkEntity)
 		linkDto := convertLinkToDto(linkEntity)
@@ -80,7 +81,8 @@ func (ls *LinkService) StartDownloadLink() func(c *gin.Context) {
 		log.Printf("Start downloading %s", paramLinkRef)
 		linkObj := ls.LinkRepo.GetByRef(uuid.MustParse(paramLinkRef))
 		config := ls.ConfigRepo.Get()
-		ls.DownloadService.DownloadFile(linkObj.Link, linkObj.Filename, config.DownloadDir)
+		var listener = downloadListenerImpl{link: linkObj, linkRepo: ls.LinkRepo}
+		go ls.DownloadService.DownloadFile(linkObj.Link, linkObj.Filename, config.DownloadDir, &listener)
 		ls.startOrStopDownload(linkObj, true, c)
 	}
 }
@@ -105,13 +107,26 @@ func (ls *LinkService) startOrStopDownload(linkObj *link.Link, start bool, c *gi
 }
 func convertLinkToDto(link *link.Link) LinkDto {
 	return LinkDto{
-		Ref:       link.Ref,
-		Link:      link.Link,
-		Running:   link.Running,
-		InError:   link.InError,
-		CreatedAt: link.CreatedAt,
-		ErrorMsg:  link.ErrorMsg,
-		Length:    link.Length,
-		Filename:  link.Filename,
+		Ref:        link.Ref,
+		Link:       link.Link,
+		Running:    link.Running,
+		InError:    link.InError,
+		CreatedAt:  link.CreatedAt,
+		ErrorMsg:   link.ErrorMsg,
+		Size:       link.Size,
+		Downloaded: link.Downloaded,
+		Filename:   link.Filename,
+	}
+}
+
+type downloadListenerImpl struct {
+	link     *link.Link
+	linkRepo *link.LinkRepo
+}
+
+func (dli *downloadListenerImpl) progress(passedByte uint64) {
+	dli.linkRepo.UpdateDownloaded(dli.link.Ref, passedByte)
+	if dli.link.Size == passedByte {
+		log.Printf("<%s> Download finish", dli.link.Ref)
 	}
 }

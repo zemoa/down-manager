@@ -58,11 +58,15 @@ func main() {
 	configService := &service.ConfigService{
 		ConfigRepo: configRepo,
 	}
+
+	websocketService := new(service.WebSocketService)
+	websocketService.Init()
 	router := gin.Default()
 	router.Use(cors.Default())
 
 	router.GET("/link1", getLink)
 
+	router.GET("/ws", websocketService.WebSocket())
 	linkRoutes := router.Group("/links")
 	linkRoutes.POST("", linkService.CreateLink())
 	linkRoutes.GET("", linkService.GetAllLink())

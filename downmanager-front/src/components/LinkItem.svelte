@@ -1,9 +1,9 @@
 <script lang="ts">
 	import Button, {Icon} from "@smui/button";
-	import type { Link } from "../business/model/link-model";
+	import type { Link, LinkItem } from "../business/model/link-model";
 	import { linkStore } from "../business/store/link-store";
 
-    export let link:Link
+    export let link:LinkItem
     export let removeDialogData : {
         open: boolean,
         linkRef: string
@@ -15,7 +15,7 @@
         }
     }
 </script>
-{link.Ref} ({link.Link}) - state : {link.Running ? "running": "stopped"} - 
+{link.Ref} ({link.Filename}) - state : {link.Running ? "running": "stopped"} - {link.Percent} %
 <Button on:click={() => (linkStore.startDownload(link.Ref))}>
     <Icon class="material-icons">play_arrow</Icon>
 </Button>

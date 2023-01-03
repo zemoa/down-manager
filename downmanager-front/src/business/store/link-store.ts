@@ -1,10 +1,10 @@
 import { derived, writable, type Writable } from "svelte/store";
-import type { Link } from "../model/link-model";
+import type { LinkItem } from "../model/link-model";
 import { env } from "$env/dynamic/public";
 
 class LinkStore {
     constructor(
-        private _links: Writable<Link[]> = writable([]),
+        private _links: Writable<LinkItem[]> = writable([]),
         private _fetchingLinks: Writable<boolean> = writable(false)
     ) {}
 
@@ -22,7 +22,8 @@ class LinkStore {
             const response = await fetch(`${env.PUBLIC_BASE_API}/links`, {
                 method: 'GET'
             })
-            const data = await response.json() as Link[]
+            const data = await response.json() as LinkItem[]
+            data.forEach(link => this.computePercent(link))
             this._links.set(data)
             console.log(data)
         } catch (error) {
@@ -37,7 +38,8 @@ class LinkStore {
             method: 'POST'
         })
         if(response.ok) {
-            const data = await response.json() as Link
+            const data = await response.json() as LinkItem
+            this.computePercent(data)
             this._links.update(links => [...links, data])
         } else {
             console.log(`Error while creating link. Code : ${response.status} with message : ${response.statusText}`)
@@ -69,7 +71,8 @@ class LinkStore {
             method: 'PUT'
         })
         if(response.ok) {
-            const data = await response.json() as Link
+            const data = await response.json() as LinkItem
+            this.computePercent(data)
             this._links.update(links => {
                 const link = links.find(link => linkref == link.Ref)
                 if(link) {
@@ -81,6 +84,11 @@ class LinkStore {
         } else {
             console.log(`Error while calling action ${action} on link ${linkref}. Code : ${response.status} with message : ${response.statusText}`)
         }
+    }
+
+    private computePercent(link: LinkItem): LinkItem {
+        link.Percent = Math.floor((link.Downloaded / link.Size) * 100)
+        return link
     }
 }
 

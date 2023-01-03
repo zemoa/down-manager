@@ -148,6 +148,9 @@ func (dli *downloadListenerImpl) progress(passedByte uint64) {
 	}
 	dli.websocketService.BroadcastMessage(marshalDownloadMessage(&progressMessage))
 	if dli.link.Size == passedByte {
+		link := dli.linkRepo.GetByRef(dli.link.Ref)
+		link.Running = false
+		dli.linkRepo.Update(link)
 		endMessage := downloadMessage{
 			Linkref:    dli.link.Ref,
 			Finished:   true,

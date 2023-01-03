@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { linkStore } from "../business/store/link-store";
+    import { webSocketStore } from "../business/store/websocket-store";
     import Button, {Label} from "@smui/button";
 	import AddDialog from "../components/AddDialog.svelte";
     import DeleteDialog from "../components/DeleteDialog.svelte";
@@ -13,6 +14,7 @@
         linkRef: ""
     };
     onMount(async () => {
+        webSocketStore.connect();
         linkStore.retrieveLinks();
     })
     

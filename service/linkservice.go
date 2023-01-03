@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -24,9 +25,10 @@ type LinkDto struct {
 }
 
 type LinkService struct {
-	LinkRepo        *link.LinkRepo
-	ConfigRepo      *config.ConfigRepo
-	DownloadService *DownloadService
+	LinkRepo         *link.LinkRepo
+	ConfigRepo       *config.ConfigRepo
+	DownloadService  *DownloadService
+	WebSocketService *WebSocketService
 }
 
 func (ls *LinkService) CreateLink() func(c *gin.Context) {
@@ -81,7 +83,7 @@ func (ls *LinkService) StartDownloadLink() func(c *gin.Context) {
 		log.Printf("Start downloading %s", paramLinkRef)
 		linkObj := ls.LinkRepo.GetByRef(uuid.MustParse(paramLinkRef))
 		config := ls.ConfigRepo.Get()
-		var listener = downloadListenerImpl{link: linkObj, linkRepo: ls.LinkRepo}
+		var listener = downloadListenerImpl{link: linkObj, linkRepo: ls.LinkRepo, websocketService: ls.WebSocketService}
 		go ls.DownloadService.DownloadFile(linkObj.Link, linkObj.Filename, config.DownloadDir, &listener)
 		ls.startOrStopDownload(linkObj, true, c)
 	}
@@ -120,12 +122,14 @@ func convertLinkToDto(link *link.Link) LinkDto {
 }
 
 type downloadListenerImpl struct {
-	link     *link.Link
-	linkRepo *link.LinkRepo
+	link             *link.Link
+	linkRepo         *link.LinkRepo
+	websocketService *WebSocketService
 }
 
 func (dli *downloadListenerImpl) progress(passedByte uint64) {
 	dli.linkRepo.UpdateDownloaded(dli.link.Ref, passedByte)
+	dli.websocketService.BroadcastMessage(fmt.Sprintf("%s download %d bytes", dli.link.Ref, passedByte))
 	if dli.link.Size == passedByte {
 		log.Printf("<%s> Download finish", dli.link.Ref)
 	}

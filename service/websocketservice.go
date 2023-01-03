@@ -30,3 +30,7 @@ func (wss *WebSocketService) WebSocket() func(c *gin.Context) {
 		wss.m.HandleRequest(c.Writer, c.Request)
 	}
 }
+
+func (wss *WebSocketService) BroadcastMessage(msg string) {
+	wss.m.Broadcast([]byte(msg))
+}

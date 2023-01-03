@@ -51,16 +51,19 @@ func main() {
 	db := database.Init(".")
 	linkRepo := &link.LinkRepo{Db: db}
 	configRepo := &config.ConfigRepo{Db: db}
+	websocketService := new(service.WebSocketService)
+	websocketService.Init()
+	downloadService := new(service.DownloadService)
 	linkService := &service.LinkService{
-		LinkRepo:   linkRepo,
-		ConfigRepo: configRepo,
+		LinkRepo:         linkRepo,
+		ConfigRepo:       configRepo,
+		WebSocketService: websocketService,
+		DownloadService:  downloadService,
 	}
 	configService := &service.ConfigService{
 		ConfigRepo: configRepo,
 	}
 
-	websocketService := new(service.WebSocketService)
-	websocketService.Init()
 	router := gin.Default()
 	router.Use(cors.Default())
 

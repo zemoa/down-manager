@@ -1,7 +1,7 @@
 package service
 
 import (
-	"fmt"
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -127,10 +127,41 @@ type downloadListenerImpl struct {
 	websocketService *WebSocketService
 }
 
+type downloadMessage struct {
+	Linkref    uuid.UUID
+	Finished   bool
+	InError    bool
+	ErrorMsg   string
+	Total      uint64
+	Downloaded uint64
+}
+
 func (dli *downloadListenerImpl) progress(passedByte uint64) {
 	dli.linkRepo.UpdateDownloaded(dli.link.Ref, passedByte)
-	dli.websocketService.BroadcastMessage(fmt.Sprintf("%s download %d bytes", dli.link.Ref, passedByte))
+	progressMessage := downloadMessage{
+		Linkref:    dli.link.Ref,
+		Finished:   false,
+		InError:    false,
+		Total:      dli.link.Size,
+		ErrorMsg:   "",
+		Downloaded: passedByte,
+	}
+	dli.websocketService.BroadcastMessage(marshalDownloadMessage(&progressMessage))
 	if dli.link.Size == passedByte {
+		endMessage := downloadMessage{
+			Linkref:    dli.link.Ref,
+			Finished:   true,
+			InError:    false,
+			Total:      dli.link.Size,
+			ErrorMsg:   "",
+			Downloaded: passedByte,
+		}
+		dli.websocketService.BroadcastMessage(marshalDownloadMessage(&endMessage))
 		log.Printf("<%s> Download finish", dli.link.Ref)
 	}
+}
+
+func marshalDownloadMessage(downloadMessage *downloadMessage) []byte {
+	json, _ := json.Marshal(downloadMessage)
+	return json
 }

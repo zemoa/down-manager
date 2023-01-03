@@ -33,6 +33,6 @@ func (wss *WebSocketService) WebSocket() func(c *gin.Context) {
 	}
 }
 
-func (wss *WebSocketService) BroadcastMessage(msg string) {
-	wss.m.Broadcast([]byte(msg))
+func (wss *WebSocketService) BroadcastMessage(msg []byte) {
+	wss.m.Broadcast(msg)
 }

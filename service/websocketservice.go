@@ -12,7 +12,8 @@ type WebSocketService struct {
 	m *melody.Melody
 }
 
-func (wss *WebSocketService) Init() {
+func NewWebSocket() *WebSocketService {
+	wss := new(WebSocketService)
 	wss.m = melody.New()
 	wss.m.HandleConnect(func(s *melody.Session) {
 		id := uuid.NewString()
@@ -23,6 +24,7 @@ func (wss *WebSocketService) Init() {
 		id, _ := s.Get("id")
 		log.Printf("client <%s> disconnected", id)
 	})
+	return wss
 }
 
 func (wss *WebSocketService) WebSocket() func(c *gin.Context) {

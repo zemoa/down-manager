@@ -51,8 +51,7 @@ func main() {
 	db := database.Init(".")
 	linkRepo := &link.LinkRepo{Db: db}
 	configRepo := &config.ConfigRepo{Db: db}
-	websocketService := new(service.WebSocketService)
-	websocketService.Init()
+	websocketService := service.NewWebSocket()
 	downloadService := new(service.DownloadService)
 	linkService := &service.LinkService{
 		LinkRepo:         linkRepo,

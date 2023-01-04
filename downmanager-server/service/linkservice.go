@@ -122,9 +122,10 @@ func convertLinkToDto(link *link.Link) LinkDto {
 }
 
 type downloadListenerImpl struct {
-	link             *link.Link
-	linkRepo         *link.LinkRepo
-	websocketService *WebSocketService
+	link              *link.Link
+	linkRepo          *link.LinkRepo
+	websocketService  *WebSocketService
+	updateTriggerTime *time.Time
 }
 
 type downloadMessage struct {
@@ -138,15 +139,21 @@ type downloadMessage struct {
 
 func (dli *downloadListenerImpl) progress(passedByte uint64) {
 	dli.linkRepo.UpdateDownloaded(dli.link.Ref, passedByte)
-	progressMessage := downloadMessage{
-		Linkref:    dli.link.Ref,
-		Finished:   false,
-		InError:    false,
-		Total:      dli.link.Size,
-		ErrorMsg:   "",
-		Downloaded: passedByte,
+	now := time.Now()
+	if dli.updateTriggerTime == nil || dli.updateTriggerTime.Before(now) {
+		tmpTrigger := now.Add(1 * time.Second)
+		dli.updateTriggerTime = &tmpTrigger
+		progressMessage := downloadMessage{
+			Linkref:    dli.link.Ref,
+			Finished:   false,
+			InError:    false,
+			Total:      dli.link.Size,
+			ErrorMsg:   "",
+			Downloaded: passedByte,
+		}
+		dli.websocketService.BroadcastMessage(marshalDownloadMessage(&progressMessage))
 	}
-	dli.websocketService.BroadcastMessage(marshalDownloadMessage(&progressMessage))
+
 	if dli.link.Size == passedByte {
 		link := dli.linkRepo.GetByRef(dli.link.Ref)
 		link.Running = false

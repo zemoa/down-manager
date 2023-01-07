@@ -4,7 +4,7 @@ import { env } from "$env/dynamic/public";
 
 class LinkStore {
     constructor(
-        private _links: Writable<LinkItem[]> = writable([]),
+        private _links: Writable<Map<string, LinkItem>> = writable(new Map()),
         private _fetchingLinks: Writable<boolean> = writable(false)
     ) {}
 
@@ -13,7 +13,7 @@ class LinkStore {
     }
 
     public get links() {
-        return derived([this._links], ([$_links]) => $_links)
+        return derived([this._links], ([$_links]) => Array.from($_links.values()))
     }
 
     public async retrieveLinks() {
@@ -24,7 +24,7 @@ class LinkStore {
             })
             const data = await response.json() as LinkItem[]
             data.forEach(link => this.computePercent(link))
-            this._links.set(data)
+            this._links.set(new Map(data.map(link => [link.Ref, link])))
             console.log(data)
         } catch (error) {
             console.error(error)
@@ -40,7 +40,11 @@ class LinkStore {
         if(response.ok) {
             const data = await response.json() as LinkItem
             this.computePercent(data)
-            this._links.update(links => [...links, data])
+
+            this._links.update(links => {
+                links.set(data.Ref, data)
+                return links
+            })
         } else {
             console.log(`Error while creating link. Code : ${response.status} with message : ${response.statusText}`)
         }
@@ -51,7 +55,10 @@ class LinkStore {
             method: 'DELETE'
         })
         if(response.ok) {
-            this._links.update(links => links.filter(link => link.Ref != linkref))
+            this._links.update(links => {
+                links.delete(linkref)
+                return links
+            })
         } else {
             console.log(`Error while deleting link. Code : ${response.status} with message : ${response.statusText}`)
         }
@@ -74,10 +81,9 @@ class LinkStore {
             const data = await response.json() as LinkItem
             this.computePercent(data)
             this._links.update(links => {
-                const link = links.find(link => linkref == link.Ref)
+                const link = links.get(linkref)
                 if(link) {
                     link.Running = data.Running
-                    return [...links]
                 }
                 return links
             })

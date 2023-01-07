@@ -1,5 +1,5 @@
 import { derived, writable, type Writable } from "svelte/store";
-import type { LinkItem } from "../model/link-model";
+import type { LinkItem, UpdateProgress } from "../model/link-model";
 import { env } from "$env/dynamic/public";
 
 class LinkStore {
@@ -95,6 +95,19 @@ class LinkStore {
     private computePercent(link: LinkItem): LinkItem {
         link.Percent = Math.floor((link.Downloaded / link.Size) * 100)
         return link
+    }
+
+    async updateProgress(linkRef: string, updateProgress: UpdateProgress) {
+        this._links.update(links => {
+            const link = links.get(linkRef)
+            if(link) {
+                link.Downloaded = updateProgress.Downloaded
+                link.InError = updateProgress.InError
+                link.Running = !updateProgress.Finished
+                this.computePercent(link)
+            }
+            return links
+        })
     }
 }
 

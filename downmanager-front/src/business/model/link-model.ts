@@ -11,3 +11,9 @@ export interface Link {
 export interface LinkItem extends Link {
     Percent: number
 }
+
+export interface UpdateProgress {
+    InError: boolean,
+    Downloaded: number,
+    Finished: boolean,
+}

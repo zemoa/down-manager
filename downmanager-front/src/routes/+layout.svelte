@@ -1,5 +1,7 @@
 <script lang="ts">
     import TopAppBar , {Row, Section, Title} from "@smui/top-app-bar";
+    import IconButton from '@smui/icon-button';
+    
 </script>
 
 <div class="main">
@@ -8,6 +10,9 @@
             <Row>
                 <Section>
                     <Title>Downmanager</Title>
+                </Section>
+                <Section align="end" toolbar>
+                    <IconButton class="material-icons">build</IconButton>
                 </Section>
             </Row>
         </TopAppBar>
